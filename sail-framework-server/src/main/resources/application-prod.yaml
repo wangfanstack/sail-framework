@@ -1,0 +1,118 @@
+server:
+  port: 48080
+
+--- #################### 数据库相关配置 ####################
+
+spring:
+  # 数据源配置项（HikariCP 单体数据源）；支持环境变量注入覆盖，默认值保证未配置时行为不变
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      pool-name: Sail-frameworkHikariPool
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 20 # 最大连接数
+      idle-timeout: 600000 # 空闲连接超时时间，单位：毫秒（10 分钟）
+      max-lifetime: 1800000 # 连程最大生存时间，单位：毫秒（30 分钟）
+      connection-timeout: 30000 # 获取连接超时时间，单位：毫秒（30 秒）
+      validation-timeout: 5000 # 连接校验超时时间，单位：毫秒（5 秒）
+      connection-test-query: SELECT 1 # 连接有效性检测语句
+
+  # Redis 配置。Redisson 默认的配置足够使用，一般不需要进行调优；支持环境变量注入覆盖
+  data:
+    redis:
+      host: ${REDIS_HOST} # 地址
+      port: ${REDIS_PORT} # 端口
+      password: ${REDIS_PASSWORD}
+
+--- #################### 定时任务相关配置 ####################
+
+# Quartz 配置项，对应 QuartzProperties 配置类
+spring:
+  quartz:
+    auto-startup: true # 生产环境，需要开启 Job
+    scheduler-name: schedulerName # Scheduler 名字。默认为 schedulerName
+    job-store-type: jdbc # Job 存储器类型。默认为 memory 表示内存，可选 jdbc 使用数据库。
+    wait-for-jobs-to-complete-on-shutdown: true # 应用关闭时，是否等待定时任务执行完成。默认为 false ，建议设置为 true
+    properties: # 添加 Quartz Scheduler 附加属性，更多可以看 http://www.quartz-scheduler.org/documentation/2.4.0-SNAPSHOT/configuration.html 文档
+      org:
+        quartz:
+          # Scheduler 相关配置
+          scheduler:
+            instanceName: schedulerName
+            instanceId: AUTO # 自动生成 instance ID
+          # JobStore 相关配置
+          jobStore:
+            # JobStore 实现类。可见博客：https://blog.csdn.net/weixin_42458219/article/details/122247162
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            isClustered: true # 是集群模式
+            clusterCheckinInterval: 15000 # 集群检查频率，单位：毫秒。默认为 15000，即 15 秒
+            misfireThreshold: 60000 # misfire 阀值，单位：毫秒。
+          # 线程池相关配置
+          threadPool:
+            threadCount: 25 # 线程池大小。默认为 10 。
+            threadPriority: 5 # 线程优先级
+            class: org.quartz.simpl.SimpleThreadPool # 线程池类型
+    jdbc: # 使用 JDBC 的 JobStore 的时候，JDBC 的配置
+      initialize-schema: NEVER # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，我们手动创建表结构。
+
+--- #################### 监控相关配置 ####################
+
+# Actuator 监控端点的配置项
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: '*'
+
+  endpoint:
+    # 生产安全：
+    # env/configprops 会暴露环境变量、配置属性等敏感信息；
+    # heapdump/threaddump 可能暴露运行时敏感数据。
+    env:
+      access: none
+    configprops:
+      access: none
+    heapdump:
+      access: none
+    threaddump:
+      access: none
+
+# Spring Boot Admin 环境差异配置（公共段见 application.yaml；生产默认密码强于其它环境）
+spring:
+  boot:
+    admin:
+      client:
+        # 无默认值：环境变量缺项时启动即失败（fail-fast），避免静默使用弱密码
+        password: ${AGRI4J_MONITOR_PASSWORD}
+        instance:
+          metadata:
+            user:
+              password: ${AGRI4J_MONITOR_PASSWORD}
+
+--- #接口文档相关配置
+springdoc:
+  api-docs:
+    enabled: false
+# 接口文档配置
+scalar:
+  enabled: false
+
+# 日志文件配置
+logging:
+  file:
+    name: ${user.home}/logs/${spring.application.name}.log # 日志文件名，全路径（容器内 /root/logs，由 compose 挂载到部署目录）
+    path: ${user.home}/logs # 日志目录，注入 logback 的 LOG_PATH
+  level:
+    root: info
+
+--- #################### 农E链相关配置 ####################
+
+# 农E链配置项，设置当前项目所有自定义的配置
+sail-framework:
+  captcha:
+    enable: true # 生产环境开启图片验证码
+  security:
+    mock-enable: false # 生产环境严禁开启 mock 登录

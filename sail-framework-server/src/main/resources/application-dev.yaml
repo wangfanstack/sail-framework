@@ -1,0 +1,133 @@
+server:
+  port: 48080
+
+--- #################### 数据库相关配置 ####################
+spring:
+  autoconfigure:
+    # noinspection SpringBootApplicationYaml
+    exclude:
+      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration # 本地开发环境，不开启 Quartz 的自动配置
+  # 数据源配置项（HikariCP 单体数据源，MySQL 驱动版本由 Spring Boot BOM 管理）
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+    username: root
+    password: 123456
+    hikari:
+      pool-name: Sail-frameworkHikariPool
+      minimum-idle: 2 # 最小空闲连接数
+      maximum-pool-size: 20 # 最大连接数
+      idle-timeout: 600000 # 空闲连接超时时间，单位：毫秒（10 分钟）
+      max-lifetime: 1800000 # 连程最大生存时间，单位：毫秒（30 分钟）
+      connection-timeout: 30000 # 获取连接超时时间，单位：毫秒（30 秒）
+      validation-timeout: 5000 # 连接校验超时时间，单位：毫秒（5 秒）
+      connection-test-query: SELECT 1 # 连接有效性检测语句
+
+  # Redis 配置。Redisson 默认的配置足够使用，一般不需要进行调优
+  data:
+    redis:
+      host: 127.0.0.1 # 地址
+      port: 6379 # 端口
+      database: 0 # 数据库索引
+
+--- #################### 监控相关配置 ####################
+
+# Actuator 监控端点的配置项
+management:
+  endpoints:
+    web:
+      base-path: /actuator # Actuator 提供的 API 接口的根目录。默认为 /actuator
+      exposure:
+        include: '*' # 需要开放的端点。默认值只打开 health 和 info 两个端点。通过设置 * ，可以开放所有端点。
+  prometheus:
+    metrics:
+      export:
+        enabled: true # 暴露 /actuator/prometheus 端点（micrometer-registry-prometheus）
+
+# Spring Boot Admin 环境差异配置（公共段见 application.yaml）
+spring:
+  boot:
+    admin:
+      # 允许嵌入 iframe 的域名（支持通配符），实际部署时，可以改为 "'self' [你的公网域名]"
+      frame-ancestors: "'self' localhost localhost:48080 127.0.0.1 127.0.0.1:48080"
+      client:
+        # 本地开发兜底账号：公共段已去掉默认值（测试/生产必须由环境变量显式提供），dev 不配置也能启动
+        username: admin
+        password: admin
+        instance:
+          metadata:
+            user:
+              name: admin
+              password: admin
+
+# 日志文件配置
+logging:
+  file:
+    name: ./logs/${spring.application.name}.log # 本地开发日志落在项目根目录 ./logs，便于随手查看
+    path: ./logs # 日志目录
+  level:
+    root: info
+    cn.sailstack.module.infra.dal.mysql: debug # 配置自己写的 MyBatis Mapper 打印日志
+    cn.sailstack.module.system.dal.mysql: debug
+    cn.sailstack.module.infra.dal.mysql.logger.ApiErrorLogMapper: INFO # 避免 ApiErrorLog 日志重复打印
+    cn.sailstack.module.infra.dal.mysql.job.JobLogMapper: INFO
+    cn.sailstack.module.infra.dal.mysql.file.FileConfigMapper: INFO
+    cn.sailstack.module.system.dal.mysql.sms.SmsChannelMapper: INFO
+
+--- #################### 微信公众号、小程序相关配置 ####################
+wx:
+  mp: # 公众号配置（必填），参见 https://github.com/Wechat-Group/WxJava/blob/develop/spring-boot-starters/wx-java-mp-spring-boot-starter/README.md 文档
+    app-id: wxf56b1542b9e85f8a # 测试号（Kongdy 提供的）
+    secret: 496379dcef1ba869e9234de8d598cfd3
+    # 存储配置，解决 AccessToken 的跨节点的共享
+    config-storage:
+      type: RedisTemplate # 采用 RedisTemplate 操作 Redis，会自动从 Spring 中获取
+      key-prefix: wx # Redis Key 的前缀
+      http-client-type: HttpComponents # 采用 HttpComponents（HttpClient 5）请求微信公众号平台
+  miniapp: # 小程序配置（必填），参见 https://github.com/Wechat-Group/WxJava/blob/develop/spring-boot-starters/wx-java-miniapp-spring-boot-starter/README.md 文档
+    appid: wxc4598c446f8a9cb3 # 测试号（Kongdy 提供的）
+    secret: 4a1a04e07f6a4a0751b39c3064a92c8b
+    config-storage:
+      type: RedisTemplate # 采用 RedisTemplate 操作 Redis，会自动从 Spring 中获取
+      key-prefix: wa # Redis Key 的前缀
+      http-client-type: HttpComponents # 采用 HttpComponents（HttpClient 5）请求微信小程序平台
+
+--- #################### 社交登录相关配置 ####################
+justauth:
+  enabled: true
+  type:
+    DINGTALK: # 钉钉
+      client-id: dingvrnreaje3yqvzhxg
+      client-secret: i8E6iZyDvZj51JIb0tYsYfVQYOks9Cq1lgryEjFRqC79P3iJcrxEwT6Qk2QvLrLI
+      ignore-check-redirect-uri: true
+    WECHAT_ENTERPRISE: # 企业微信
+      client-id: wwd411c69a39ad2e54
+      client-secret: 1wTb7hYxnpT2TUbIeHGXGo7T0odav1ic10mLdyyATOw
+      agent-id: 1000004
+      ignore-check-redirect-uri: true
+    # noinspection SpringBootApplicationYaml
+    WECHAT_MINI_PROGRAM: # 微信小程序
+      client-id: ${wx.miniapp.appid}
+      client-secret: ${wx.miniapp.secret}
+      ignore-check-redirect-uri: true
+      ignore-check-state: true # 微信小程序，不会使用到 state，所以不进行校验
+    WECHAT_MP: # 微信公众号
+      client-id: ${wx.mp.app-id}
+      client-secret: ${wx.mp.secret}
+      ignore-check-redirect-uri: true
+    ALIPAY: # 支付宝小程序
+      client-id: xx
+      client-secret: xx
+      alipay-public-key: xx
+      ignore-check-redirect-uri: true
+      ignore-check-state: true
+  cache:
+    type: REDIS
+
+--- #################### 农E链相关配置 ####################
+
+# 农E链配置项，设置当前项目所有自定义的配置
+sail-framework:
+  captcha:
+    enable: false # 本地环境，暂时关闭图片验证码，方便登录等接口的测试；
+  security:
+    mock-enable: true

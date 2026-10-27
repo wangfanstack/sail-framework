@@ -1,0 +1,45 @@
+package cn.sailstack.framework.common.validation;
+
+import cn.sailstack.framework.common.core.ArrayValuable;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class InEnumCollectionValidator implements ConstraintValidator<InEnum, Collection<?>> {
+
+    private List<?> values;
+
+    @Override
+    public void initialize(InEnum annotation) {
+        ArrayValuable<?>[] values = annotation.value().getEnumConstants();
+        if (values.length == 0) {
+            this.values = Collections.emptyList();
+        } else {
+            this.values = Arrays.asList(values[0].array());
+        }
+    }
+
+    @Override
+    public boolean isValid(Collection<?> list, ConstraintValidatorContext context) {
+        if (list == null) {
+            return true;
+        }
+        // 校验通过
+        if (values.containsAll(list)) {
+            return true;
+        }
+        // 校验不通过，自定义提示语句
+        String joined = list.stream().map(String::valueOf).collect(Collectors.joining(","));
+        context.disableDefaultConstraintViolation(); // 禁用默认的 message 的值
+        context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate()
+                .replaceAll("\\{value}", joined)).addConstraintViolation(); // 重新添加错误提示语句
+        return false;
+    }
+
+}
+

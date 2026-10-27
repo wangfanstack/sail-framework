@@ -1,0 +1,4 @@
+cn.sailstack.framework.idempotent.config.Sail-frameworkIdempotentConfiguration
+cn.sailstack.framework.lock4j.config.Sail-frameworkLock4jConfiguration
+cn.sailstack.framework.ratelimiter.config.Sail-frameworkRateLimiterConfiguration
+cn.sailstack.framework.signature.config.Sail-frameworkApiSignatureAutoConfiguration

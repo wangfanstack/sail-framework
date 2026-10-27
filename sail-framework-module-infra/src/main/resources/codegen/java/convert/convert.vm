@@ -1,0 +1,39 @@
+package ${basePackage}.module.${table.moduleName}.convert.${table.businessName};
+
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+#if ($voType == 10)
+import ${PageResultClassName};
+
+import java.util.List;
+#end
+#if ($voType == 10 || $importEnable)
+import ${basePackage}.module.${table.moduleName}.controller.${sceneEnum.basePackage}.${table.businessName}.vo.*;
+#end
+import ${basePackage}.module.${table.moduleName}.dal.dataobject.${table.businessName}.${table.className}DO;
+
+/**
+ * ${table.classComment} Convert
+ *
+ * @author ${table.author}
+ */
+@Mapper
+public interface ${table.className}Convert {
+
+    ${table.className}Convert INSTANCE = Mappers.getMapper(${table.className}Convert.class);
+
+#if ($voType == 10)
+    ${table.className}DO convert(${saveReqVOClass} bean);
+
+    ${respVOClass} convert(${table.className}DO bean);
+
+    List<${respVOClass}> convertList(List<${table.className}DO> list);
+
+    default PageResult<${respVOClass}> convertPage(PageResult<${table.className}DO> page) {
+        return new PageResult<>(convertList(page.getList()), page.getTotal());
+    }
+#end
+#if ($importEnable)
+    ${saveReqVOClass} convert(${sceneEnum.prefixClass}${table.className}ImportExcelVO bean);
+#end
+}

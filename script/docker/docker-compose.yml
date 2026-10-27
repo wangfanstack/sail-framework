@@ -1,0 +1,62 @@
+version: "3.4"
+
+name: sail-framework-system
+
+services:
+  mysql:
+    container_name: sail-framework-mysql
+    image: mysql:8
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ruoyi-vue-pro}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+    volumes:
+      - mysql:/var/lib/mysql/
+      - ../../sql/mysql/ruoyi-vue-pro.sql:/docker-entrypoint-initdb.d/ruoyi-vue-pro.sql:ro
+      - ../../sql/mysql/quartz.sql:/docker-entrypoint-initdb.d/quartz.sql:ro
+
+  redis:
+    container_name: sail-framework-redis
+    image: redis:6-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+
+  server:
+    container_name: sail-framework-server
+    build:
+      context: ../../sail-framework-server/
+    image: sail-framework-server
+    restart: unless-stopped
+    ports:
+      - "48080:48080"
+    environment:
+      # https://github.com/polovyivan/docker-pass-configs-to-container
+      SPRING_PROFILES_ACTIVE: dev
+      AGRI4J_MONITOR_USERNAME: ${AGRI4J_MONITOR_USERNAME:-admin}
+      AGRI4J_MONITOR_PASSWORD: ${AGRI4J_MONITOR_PASSWORD:-admin}
+      JAVA_OPTS:
+        ${JAVA_OPTS:-
+          -Xms512m
+          -Xmx512m
+          -Djava.security.egd=file:/dev/./urandom
+        }
+      ARGS:
+        --spring.datasource.url=${DATASOURCE_URL:-jdbc:mysql://sail-framework-mysql:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true}
+        --spring.datasource.username=${DATASOURCE_USERNAME:-root}
+        --spring.datasource.password=${DATASOURCE_PASSWORD:-123456}
+        --spring.data.redis.host=${REDIS_HOST:-sail-framework-redis}
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  mysql:
+    driver: local
+  redis:
+    driver: local

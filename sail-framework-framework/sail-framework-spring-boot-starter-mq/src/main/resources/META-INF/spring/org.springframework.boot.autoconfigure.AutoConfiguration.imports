@@ -1,0 +1,3 @@
+cn.sailstack.framework.mq.redis.config.Sail-frameworkRedisMQProducerAutoConfiguration
+cn.sailstack.framework.mq.redis.config.Sail-frameworkRedisMQConsumerAutoConfiguration
+cn.sailstack.framework.mq.rabbitmq.config.Sail-frameworkRabbitMQAutoConfiguration

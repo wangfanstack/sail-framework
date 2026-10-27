@@ -1,0 +1,3 @@
+cn.sailstack.framework.security.config.Sail-frameworkSecurityAutoConfiguration
+cn.sailstack.framework.security.config.Sail-frameworkWebSecurityConfigurerAdapter
+cn.sailstack.framework.operatelog.config.Sail-frameworkOperateLogConfiguration

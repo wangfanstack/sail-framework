@@ -1,0 +1,7 @@
+cn.sailstack.framework.apilog.config.Sail-frameworkApiLogAutoConfiguration
+cn.sailstack.framework.jackson.config.Sail-frameworkJacksonAutoConfiguration
+cn.sailstack.framework.swagger.config.Sail-frameworkSwaggerAutoConfiguration
+cn.sailstack.framework.web.config.Sail-frameworkWebAutoConfiguration
+cn.sailstack.framework.xss.config.Sail-frameworkXssAutoConfiguration
+cn.sailstack.framework.banner.config.Sail-frameworkBannerAutoConfiguration
+cn.sailstack.framework.encrypt.config.Sail-frameworkApiEncryptAutoConfiguration

@@ -1,0 +1,2 @@
+cn.sailstack.framework.redis.config.Sail-frameworkRedisAutoConfiguration
+cn.sailstack.framework.redis.config.Sail-frameworkCacheAutoConfiguration

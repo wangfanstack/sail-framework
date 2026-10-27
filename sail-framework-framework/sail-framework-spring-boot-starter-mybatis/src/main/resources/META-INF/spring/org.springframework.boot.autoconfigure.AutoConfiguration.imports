@@ -1,0 +1,3 @@
+cn.sailstack.framework.datasource.config.Sail-frameworkDataSourceAutoConfiguration
+cn.sailstack.framework.mybatis.config.Sail-frameworkMybatisAutoConfiguration
+cn.sailstack.framework.translate.config.Sail-frameworkTranslateAutoConfiguration
